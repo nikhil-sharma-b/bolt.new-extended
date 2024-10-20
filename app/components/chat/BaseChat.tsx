@@ -1,17 +1,15 @@
-// @ts-nocheck
-// Preventing TS checks with files presented in the video for a better presentation.
 import type { Message } from 'ai';
-import React, { type RefCallback } from 'react';
+import React, { useState, type RefCallback } from 'react';
 import { ClientOnly } from 'remix-utils/client-only';
+import { Messages } from '~/components/chat/Messages.client';
+import { SendButton } from '~/components/chat/SendButton.client';
 import { Menu } from '~/components/sidebar/Menu.client';
 import { IconButton } from '~/components/ui/IconButton';
 import { Workbench } from '~/components/workbench/Workbench.client';
 import { classNames } from '~/utils/classNames';
-import { MODEL_LIST, DEFAULT_PROVIDER } from '~/utils/constants';
-import { Messages } from './Messages.client';
-import { SendButton } from './SendButton.client';
-import { useState } from 'react';
+import { DEFAULT_PROVIDER, MODEL_LIST } from '~/utils/constants';
 
+import type { ModelInfo } from '~/utils/types';
 import styles from './BaseChat.module.scss';
 
 const EXAMPLE_PROMPTS = [
@@ -22,40 +20,52 @@ const EXAMPLE_PROMPTS = [
   { text: 'How do I center a div?' },
 ];
 
-const providerList = [...new Set(MODEL_LIST.map((model) => model.provider))]
+const providerList = [...new Set(MODEL_LIST.map((model) => model.provider))];
 
-const ModelSelector = ({ model, setModel, modelList, providerList }) => {
-  const [provider, setProvider] = useState(DEFAULT_PROVIDER);
+interface ModelSelectorProps {
+  model: string;
+  setModel: (model: string) => void;
+  modelList: ModelInfo[];
+  providerList: string[];
+}
+
+const ModelSelector: React.FC<ModelSelectorProps> = ({ model, setModel, modelList, providerList }) => {
+  const [provider, setProvider] = useState<string>(DEFAULT_PROVIDER);
+
   return (
     <div className="mb-2">
-      <select 
+      <select
         value={provider}
-        onChange={(e) => {
-          setProvider(e.target.value);
-          const firstModel = [...modelList].find(m => m.provider == e.target.value);
+        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+          const newProvider = e.target.value;
+          setProvider(newProvider);
+
+          const firstModel = modelList.find((m) => m.provider === newProvider);
           setModel(firstModel ? firstModel.name : '');
         }}
         className="w-full p-2 rounded-lg border border-bolt-elements-borderColor bg-bolt-elements-prompt-background text-bolt-elements-textPrimary focus:outline-none"
       >
-        {providerList.map((provider) => (
-          <option key={provider} value={provider}>
-            {provider}
+        {providerList.map((providerOption: string) => (
+          <option key={providerOption} value={providerOption}>
+            {providerOption}
           </option>
         ))}
-          <option key="Ollama" value="Ollama">
-            Ollama
-          </option>        
+        <option key="Ollama" value="Ollama">
+          Ollama
+        </option>
       </select>
       <select
         value={model}
-        onChange={(e) => setModel(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setModel(e.target.value)}
         className="w-full p-2 rounded-lg border border-bolt-elements-borderColor bg-bolt-elements-prompt-background text-bolt-elements-textPrimary focus:outline-none"
       >
-        {[...modelList].filter(e => e.provider == provider && e.name).map((modelOption) => (
-          <option key={modelOption.name} value={modelOption.name}>
-            {modelOption.label}
-          </option>
-        ))}
+        {modelList
+          .filter((e) => e.provider === provider && e.name)
+          .map((modelOption) => (
+            <option key={modelOption.name} value={modelOption.name}>
+              {modelOption.label}
+            </option>
+          ))}
       </select>
     </div>
   );
@@ -150,12 +160,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   'sticky bottom-0': chatStarted,
                 })}
               >
-                <ModelSelector
-                  model={model}
-                  setModel={setModel}
-                  modelList={MODEL_LIST}
-                  providerList={providerList}
-                />
+                <ModelSelector model={model} setModel={setModel} modelList={MODEL_LIST} providerList={providerList} />
                 <div
                   className={classNames(
                     'shadow-sm border border-bolt-elements-borderColor bg-bolt-elements-prompt-background backdrop-filter backdrop-blur-[8px] rounded-lg overflow-hidden',
