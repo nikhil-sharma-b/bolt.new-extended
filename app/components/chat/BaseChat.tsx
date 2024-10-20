@@ -1,5 +1,5 @@
 import type { Message } from 'ai';
-import React, { useState, type RefCallback } from 'react';
+import React, { type RefCallback } from 'react';
 import { ClientOnly } from 'remix-utils/client-only';
 import { Messages } from '~/components/chat/Messages.client';
 import { SendButton } from '~/components/chat/SendButton.client';
@@ -7,9 +7,9 @@ import { Menu } from '~/components/sidebar/Menu.client';
 import { IconButton } from '~/components/ui/IconButton';
 import { Workbench } from '~/components/workbench/Workbench.client';
 import { classNames } from '~/utils/classNames';
-import { DEFAULT_PROVIDER, MODEL_LIST } from '~/utils/constants';
+import { MODEL_LIST } from '~/utils/constants';
 
-import type { ModelInfo } from '~/utils/types';
+import { ModelSelector } from '~/components/chat/ModelSelector';
 import styles from './BaseChat.module.scss';
 
 const EXAMPLE_PROMPTS = [
@@ -21,55 +21,6 @@ const EXAMPLE_PROMPTS = [
 ];
 
 const providerList = [...new Set(MODEL_LIST.map((model) => model.provider))];
-
-interface ModelSelectorProps {
-  model: string;
-  setModel: (model: string) => void;
-  modelList: ModelInfo[];
-  providerList: string[];
-}
-
-const ModelSelector: React.FC<ModelSelectorProps> = ({ model, setModel, modelList, providerList }) => {
-  const [provider, setProvider] = useState<string>(DEFAULT_PROVIDER);
-
-  return (
-    <div className="mb-2">
-      <select
-        value={provider}
-        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-          const newProvider = e.target.value;
-          setProvider(newProvider);
-
-          const firstModel = modelList.find((m) => m.provider === newProvider);
-          setModel(firstModel ? firstModel.name : '');
-        }}
-        className="w-full p-2 rounded-lg border border-bolt-elements-borderColor bg-bolt-elements-prompt-background text-bolt-elements-textPrimary focus:outline-none"
-      >
-        {providerList.map((providerOption: string) => (
-          <option key={providerOption} value={providerOption}>
-            {providerOption}
-          </option>
-        ))}
-        <option key="Ollama" value="Ollama">
-          Ollama
-        </option>
-      </select>
-      <select
-        value={model}
-        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setModel(e.target.value)}
-        className="w-full p-2 rounded-lg border border-bolt-elements-borderColor bg-bolt-elements-prompt-background text-bolt-elements-textPrimary focus:outline-none"
-      >
-        {modelList
-          .filter((e) => e.provider === provider && e.name)
-          .map((modelOption) => (
-            <option key={modelOption.name} value={modelOption.name}>
-              {modelOption.label}
-            </option>
-          ))}
-      </select>
-    </div>
-  );
-};
 
 const TEXTAREA_MIN_HEIGHT = 76;
 
